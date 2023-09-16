@@ -20,7 +20,7 @@ showSnackBar({
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(content),
-      backgroundColor: isError ? Colors.red : Colors.white,
+      backgroundColor: isError ? Colors.red : Colors.green,
     ),
   );
 }

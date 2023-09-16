@@ -4,10 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:instagram_flutter/controller/auth_controller.dart';
+import 'package:instagram_flutter/responsive/responsive_layout.dart';
 import 'package:instagram_flutter/utils/colors.dart';
 import 'package:instagram_flutter/utils/utils.dart';
+import 'package:instagram_flutter/views/login_view.dart';
 
 import '../constants/images.dart';
+import '../responsive/mobile_screen_layout.dart';
+import '../responsive/web_screen_layout.dart';
 import '../widgets/text_field_input.dart';
 
 class SignupView extends StatefulWidget {
@@ -52,7 +56,7 @@ class _SignupViewState extends State<SignupView> {
       bio: _bioController.text,
       file: _image!,
     );
-
+    print(res);
     setState(() {
       _isLoading = false;
     });
@@ -61,7 +65,26 @@ class _SignupViewState extends State<SignupView> {
       if (context.mounted) {
         showSnackBar(content: res, context: context);
       }
+    } else {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+          builder: (context) {
+            return const ResponsiveLayout(
+              mobileScreenLayout: MobileScreenLayout(),
+              webScreenLayout: WebScreenLayout(),
+            );
+          },
+        ));
+      }
     }
+  }
+
+  void navigateToLogin() {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) {
+        return const LoginView();
+      },
+    ));
   }
 
   @override
@@ -200,7 +223,7 @@ class _SignupViewState extends State<SignupView> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: null,
+                    onTap: navigateToLogin,
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 20),
                       child: const Text(
