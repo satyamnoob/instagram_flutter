@@ -1,17 +1,33 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:instagram_flutter/controller/firestore_controller.dart';
+import 'package:instagram_flutter/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 
+import '../models/user.dart';
 import '../widgets/comment_card.dart';
 
 class CommentsView extends StatefulWidget {
-  const CommentsView({super.key});
+  const CommentsView({super.key, required this.snapshot});
+  final snapshot;
 
   @override
   State<CommentsView> createState() => _CommentsViewState();
 }
 
 class _CommentsViewState extends State<CommentsView> {
+  final TextEditingController _commentController = TextEditingController();
+
+  @override
+  void dispose() {
+    super.dispose();
+    _commentController.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    User user = Provider.of<UserProvider>(context).getUser;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -29,25 +45,38 @@ class _CommentsViewState extends State<CommentsView> {
           child: Row(
             children: [
               CircleAvatar(
-                backgroundImage: NetworkImage(
-                    'https://images.unsplash.com/photo-1692877317051-5978643f752a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1228&q=80'),
+                backgroundImage: NetworkImage(user.photoUrl),
                 radius: 18,
               ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(left: 16, right: 8),
                   child: TextField(
+                    controller: _commentController,
                     decoration: InputDecoration(
-                      hintText: 'Comment as username',
+                      hintText: 'Comment as ${user.username}',
                       border: InputBorder.none,
                     ),
                   ),
                 ),
               ),
-              InkWell(
-                child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                  child: Text(
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                child: InkWell(
+                  onTap: () async {
+                    await FirestoreController().postComment(
+                      postId: widget.snapshot['postId'],
+                      comment: _commentController.text,
+                      uid: user.uid,
+                      username: user.username,
+                      profilePic: user.photoUrl,
+                      context: context,
+                    );
+                    setState(() {
+                      _commentController.clear();
+                    });
+                  },
+                  child: const Text(
                     'Post',
                     style: TextStyle(color: Colors.blue),
                   ),
@@ -57,7 +86,32 @@ class _CommentsViewState extends State<CommentsView> {
           ),
         ),
       ),
-      body: CommentCard(),
+      body: StreamBuilder(
+        stream: FirebaseFirestore.instance
+            .collection('posts')
+            .doc(widget.snapshot['postId'])
+            .collection('comments')
+            .orderBy(
+              'datePublished',
+              descending: true,
+            )
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          return ListView.builder(
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (context, index) {
+              return CommentCard(
+                snapshot: snapshot.data!.docs[index].data(),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

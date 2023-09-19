@@ -40,6 +40,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.black,
       body: PageView(
         controller: pageController,

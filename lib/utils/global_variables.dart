@@ -1,21 +1,22 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_flutter/views/add_post_view.dart';
 import 'package:instagram_flutter/views/feed_view.dart';
+import 'package:instagram_flutter/views/profile_view.dart';
+import 'package:instagram_flutter/views/search_view.dart';
 
 const webScreenSize = 600;
 
-const homeScreenItems = [
+List<Widget> homeScreenItems = [
   FeedView(),
-  Center(
-    child: Text("Search"),
-  ),
+  SearchView(),
   Center(
     child: AddPostView(),
   ),
   Center(
     child: Text("Favorite"),
   ),
-  Center(
-    child: Text("Profile"),
+  ProfileView(
+    uid: FirebaseAuth.instance.currentUser!.uid,
   ),
 ];

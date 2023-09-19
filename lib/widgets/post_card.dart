@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_flutter/controller/firestore_controller.dart';
 import 'package:instagram_flutter/providers/user_provider.dart';
 import 'package:instagram_flutter/utils/colors.dart';
+import 'package:instagram_flutter/utils/utils.dart';
 import 'package:instagram_flutter/views/comments_view.dart';
 import 'package:instagram_flutter/widgets/like_animation.dart';
 import 'package:intl/intl.dart';
@@ -23,6 +25,23 @@ class PostCard extends StatefulWidget {
 
 class _PostCardState extends State<PostCard> {
   bool isLikeAnimating = false;
+  int commentLength = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    getComments();
+  }
+
+  void getComments() async {
+    QuerySnapshot snap = await FirebaseFirestore.instance
+        .collection("posts")
+        .doc(widget.snapshot['postId'])
+        .collection("comments")
+        .get();
+
+    commentLength = snap.docs.length;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,14 +69,14 @@ class _PostCardState extends State<PostCard> {
                 ),
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.only(left: 8),
+                    padding: const EdgeInsets.only(left: 8),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           widget.snapshot['username'],
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                           ),
                         )
@@ -77,7 +96,21 @@ class _PostCardState extends State<PostCard> {
                             children: ['Delete']
                                 .map(
                                   (e) => InkWell(
-                                    onTap: () {},
+                                    onTap: () async {
+                                      String res = await FirestoreController()
+                                          .deletePost(
+                                        postId: widget.snapshot['postId'],
+                                      );
+                                      // ignore: use_build_context_synchronously
+                                      Navigator.of(context).pop();
+                                      if (mounted) {
+                                        showSnackBar(
+                                          content: res,
+                                          context: context,
+                                          isError: res != "success",
+                                        );
+                                      }
+                                    },
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
                                         vertical: 12,
@@ -93,7 +126,7 @@ class _PostCardState extends State<PostCard> {
                       },
                     );
                   },
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.more_vert,
                   ),
                 )
@@ -127,11 +160,6 @@ class _PostCardState extends State<PostCard> {
                   duration: const Duration(milliseconds: 200),
                   opacity: isLikeAnimating ? 1 : 0,
                   child: LikeAnimation(
-                    child: const Icon(
-                      Icons.favorite,
-                      color: Colors.white,
-                      size: 120,
-                    ),
                     isAnimating: isLikeAnimating,
                     duration: const Duration(milliseconds: 400),
                     onEnd: () {
@@ -139,6 +167,11 @@ class _PostCardState extends State<PostCard> {
                         isLikeAnimating = false;
                       });
                     },
+                    child: const Icon(
+                      Icons.favorite,
+                      color: Colors.white,
+                      size: 120,
+                    ),
                   ),
                 )
               ],
@@ -177,7 +210,9 @@ class _PostCardState extends State<PostCard> {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) {
-                        return CommentsView();
+                        return CommentsView(
+                          snapshot: widget.snapshot,
+                        );
                       },
                     ),
                   );
@@ -233,7 +268,7 @@ class _PostCardState extends State<PostCard> {
                       children: [
                         TextSpan(
                           text: widget.snapshot['username'],
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         TextSpan(
                           text: '   ${widget.snapshot['description']}',
@@ -247,7 +282,7 @@ class _PostCardState extends State<PostCard> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Text(
-                      'View all 200 comments',
+                      'View all $commentLength comments',
                       style: const TextStyle(
                         fontSize: 16,
                         color: secondaryColor,

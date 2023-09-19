@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:instagram_flutter/controller/storage_controller.dart';
 import 'package:instagram_flutter/models/user.dart' as model;
 
@@ -33,6 +32,7 @@ class AuthController {
           password.isNotEmpty &&
           username.isNotEmpty &&
           bio.isNotEmpty &&
+          // ignore: unnecessary_null_comparison
           file != null) {
         // register user
         UserCredential userCredential =
@@ -106,5 +106,9 @@ class AuthController {
     }
 
     return res;
+  }
+
+  Future<void> signout() async {
+    _auth.signOut();
   }
 }

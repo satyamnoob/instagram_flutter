@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:instagram_flutter/constants/images.dart';
 import 'package:instagram_flutter/controller/auth_controller.dart';
 import 'package:instagram_flutter/utils/colors.dart';
+import 'package:instagram_flutter/utils/global_variables.dart';
 import 'package:instagram_flutter/utils/utils.dart';
 import 'package:instagram_flutter/views/signup_view.dart';
 import 'package:instagram_flutter/widgets/text_field_input.dart';
@@ -85,9 +86,13 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
+          padding: MediaQuery.of(context).size.width > webScreenSize
+              ? EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width / 3)
+              : const EdgeInsets.symmetric(horizontal: 32),
           width: double.infinity,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
